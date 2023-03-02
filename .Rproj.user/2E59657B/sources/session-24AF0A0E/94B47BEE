@@ -1,0 +1,28 @@
+{
+    "id": "94B47BEE",
+    "path": null,
+    "project_path": null,
+    "type": "object_explorer",
+    "hash": "0",
+    "contents": "",
+    "dirty": false,
+    "created": 1677779237367.0,
+    "source_on_save": false,
+    "relative_order": 2,
+    "properties": {
+        "id": "fcf43579d9f14b62aeed1cd35b806267",
+        "name": "efa",
+        "title": "efa",
+        "language": "R",
+        "source_window_id": "",
+        "Source": "Source"
+    },
+    "folds": "",
+    "lastKnownWriteTime": 0,
+    "encoding": "",
+    "collab_server": "",
+    "source_window": "",
+    "last_content_update": 1677779237367,
+    "read_only": false,
+    "read_only_alternatives": []
+}

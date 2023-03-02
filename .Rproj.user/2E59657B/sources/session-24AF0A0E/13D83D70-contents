@@ -1,0 +1,86 @@
+library(psych)
+library(readr)
+library(lavaan)
+library(dplyr)
+
+
+df <- read_csv("ATI_Brazilian.csv")
+
+
+colunas_aatas <- grep("^aatas", names(df))
+df_aatas <- df[, colunas_aatas]
+
+colSums(is.na(df_aatas))
+# a contagem de valores NA indica que são raros
+# substituindo os valores pela mediana de cada coluna
+
+replace_na_median <- function(x) {
+  median_value <- median(x, na.rm = TRUE)
+  x[is.na(x)] <- median_value
+  return(x)
+}
+
+df_aatas_fix <- apply(df_aatas, 2, replace_na_median)
+
+summary(df_aatas_fix )
+
+# Medidas de adequação para EFA
+
+result_bartlett <- cortest.bartlett(df_aatas_fix)
+print(result_bartlett$p)
+## Significativo para bartlett
+
+result_kmo <- KMO(df_aatas_fix)
+print(result_kmo$MSA)
+## KMO = 0.919
+
+
+fa_parrallel <- fa.parallel(df_aatas_fix,
+                            cor="poly",
+                            n.iter = 100,
+                            main = "Análises Paralelas",
+                            fa= "fa")
+fa_parrallel$fa.values
+# scree, eingenvalue e teoria indicam 3 fatores, dados simulados indicam 5; 
+
+
+# Matriz de correlação
+cor <- polychoric(df_aatas_fix)$rho
+
+# Lista com diferentes configurações
+configs <- list(
+  list(fact = 3, meth = "ml", rot = "varimax", fm = "fa"),
+  list(fact = 3, meth = "ml", rot = "oblimin", fm = "fa"),
+  list(fact = 3, meth = "ml", rot = "geominT", fm = "fa"),
+  list(fact = 3, meth = "mires", rot = "varimax", fm = "fa"),
+  list(fact = 3, meth = "wls", rot = "oblimin", fm = "fa"),
+  list(fact = 3, meth = "wls", rot = "oblimin", fm = "fa")
+  )
+
+# Lista com resultados
+results <- list()
+
+# Loop para ajustar modelos
+for (i in 1:length(configs)) {
+  
+  # Ajustar modelo
+  model <- fa(cor, nfactors = configs[[i]]$fact, rotate = configs[[i]]$rot,
+              fm = configs[[i]]$fm,
+              scores = "regression")
+  
+  # Adicionar resultados à lista
+  results[[i]] <- list(config = configs[[i]], model = model)
+  
+}
+
+# Calcular coeficiente omega para cada modelo
+for (i in 1:length(results)) {
+  omega <- omega(results[[i]]$model, fm = results[[i]]$config$fm, fm="fa", n.iter=10, plot=FALSE)
+  results[[i]]$omega <- omega$omega.total
+}
+
+# Imprimir coeficientes omega
+for (i in 1:length(results)) {
+  cat("Configuração", i, "- Omega total:", round(results[[i]]$omega, 3), "\n")
+}
+
