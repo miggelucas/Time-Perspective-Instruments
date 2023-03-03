@@ -4,7 +4,7 @@ library(lavaan)
 library(dplyr)
 
 
-df <- read_csv("ATI_Brazilian.csv")
+df <- read_csv("Database/ATI_Brazilian.csv")
 
 
 colunas_aatas <- grep("^aatas", names(df))
