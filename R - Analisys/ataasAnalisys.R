@@ -10,6 +10,8 @@ df <- read_csv("Database/ATI_Brazilian.csv")
 colunas_aatas <- grep("^aatas", names(df))
 df_aatas <- df[, colunas_aatas]
 
+df_aatas_na_drop <- na.omit(df_aatas)
+
 colSums(is.na(df_aatas))
 # a contagem de valores NA indica que são raros
 # substituindo os valores pela mediana de cada coluna
@@ -30,8 +32,11 @@ result_bartlett <- cortest.bartlett(df_aatas_fix)
 print(result_bartlett$p)
 ## Significativo para bartlett
 
-result_kmo <- KMO(df_aatas_fix)
-print(result_kmo$MSA)
+result_kmo_dropped <- KMO(df_aatas_na_drop)
+result_kmo_fixed <- KMO(df_aatas_fix)
+print(result_kmo_dropped$MSA)
+print(result_kmo_fixed$MSA)
+## fixed dataframe slightly better
 ## KMO = 0.919
 
 
@@ -47,6 +52,8 @@ fa_parrallel$fa.values
 efa <- fa(df_aatas_fix, nfactors = 3, n.iter = 25, cor = "poly", rotate = "oblimin", fm = "minres")
 fa.diagram(efa)
 print(efa)
+
+efa$loadings
 
 
 ### itens que compoem o primeiro fator
@@ -76,7 +83,62 @@ modelo_cfa <- 'f1 =~ aatas2 + aatas5 + aatas8 + aatas11 + aatas14 + aatas17 + aa
 cfa <- cfa(df_aatas_fix, model = modelo_cfa)
 summary(cfa, fit.measures = TRUE, standardized = TRUE)
 
+# fator1 -> Má relação com o presente
+# fator2 -> Má relação com o passado
+# fator3 -> Boa relação com Futuro
+
+itens_invertidos_presente <- names(efa$loadings[,1][efa$loadings[,1] < -0.3])
+itens_invertidos_passado <- names(efa$loadings[,2][efa$loadings[,2] < -0.3])
+itens_invertidos_futuro <- names(efa$loadings[,3][efa$loadings[,3] < -0.3])
+itens_invertidos <- c(itens_invertidos_passado, itens_invertidos_futuro, itens_invertidos_presente)
+itens_invertidos
+
+df_aatas_scores <- df_aatas_fix
+df_aatas_scores[,itens_invertidos] <- 6 - df_aatas_scores[,itens_invertidos] 
+
+# pensando num melhor entendimento do instrumento, os fatores 1 e 2 serão invertidos
+
+df_aatas_scores[,itens_fa1] <- 6 - df_aatas_scores[,itens_fa1] 
+df_aatas_scores[,itens_fa2] <- 6 - df_aatas_scores[,itens_fa2] 
 
 
+# fator1 -> Boa relação com o presente
+# fator2 -> Boa relação com o passado
+# fator3 -> Boa relação com Futuro
 
-      
+df_aatas_scores
+
+# Precisão 
+
+alpha(df_aatas_scores[, itens_fa1])
+omega(df_aatas_scores[, itens_fa1])
+## presente
+## alpha = 0.91; Omega = 0.93
+
+alpha(df_aatas_scores[, itens_fa2])
+omega(df_aatas_scores[, itens_fa2])
+## passado
+## alpha = 0.89; Omega = 0.92
+
+alpha(df_aatas_scores[, itens_fa3])
+omega(df_aatas_scores[, itens_fa3])
+## futuro
+## alpha = 0.86; Omega = 0.89 
+
+scores_presente <- rowSums(df_aatas_scores[, itens_fa1])
+scores_passado <- rowSums(df_aatas_scores[, itens_fa2])
+scores_futuro <- rowSums(df_aatas_scores[, itens_fa3])
+
+
+# dataframe de scores
+
+df_scores <- data.frame( scores_presente = scores_presente, scores_passado = scores_passado, scores_futuro = scores_futuro)
+df_scores    
+
+df_scores_scalado <- round(scale(df_scores), 2)
+colnames(df_scores_scalado) <- c("scores_presente_escalado", "scores_passado_escalado", "scores_futuro_escalado")
+df_scores_scalado
+
+df_scores_final <- cbind(df_scores, df_scores_scalado)
+summary(df_scores_final)
+write.csv(df_scores_final, file = "scores_ataas.csv", row.names = TRUE)
