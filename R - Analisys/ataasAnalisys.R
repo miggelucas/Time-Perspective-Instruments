@@ -141,4 +141,8 @@ df_scores_scalado
 
 df_scores_final <- cbind(df_scores, df_scores_scalado)
 summary(df_scores_final)
-write.csv(df_scores_final, file = "scores_ataas.csv", row.names = TRUE)
+write.csv(df_scores_final, file = "scores_aatas.csv", row.names = TRUE)
+
+hist(df_scores_final$scores_presente)
+hist(df_scores_final$scores_futuro)
+hist(df_scores_final$scores_passado)
