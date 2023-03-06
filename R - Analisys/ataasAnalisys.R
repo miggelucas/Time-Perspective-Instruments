@@ -88,7 +88,7 @@ summary(cfa, fit.measures = TRUE, standardized = TRUE)
 # fator3 -> Boa relação com Futuro
 
 itens_invertidos_presente <- names(efa$loadings[,1][efa$loadings[,1] < -0.3])
-itens_invertidos_passado <- names(efa$loadings[,2][efa$loadings[,2] < -0.3])
+xitens_invertidos_passado <- names(efa$loadings[,2][efa$loadings[,2] < -0.3])
 itens_invertidos_futuro <- names(efa$loadings[,3][efa$loadings[,3] < -0.3])
 itens_invertidos <- c(itens_invertidos_passado, itens_invertidos_futuro, itens_invertidos_presente)
 itens_invertidos
@@ -146,3 +146,9 @@ write.csv(df_scores_final, file = "scores_aatas.csv", row.names = TRUE)
 hist(df_scores_final$scores_presente)
 hist(df_scores_final$scores_futuro)
 hist(df_scores_final$scores_passado)
+
+corr_scores <- cor(df_scores)
+plot(df_scores)
+
+stats_df <- data.frame(describe(df_scores))
+stats_df
